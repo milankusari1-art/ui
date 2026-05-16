@@ -3,6 +3,7 @@ set -e
 
 REPO_URL="https://github.com/milankusari1-art/ui.git"
 INSTALL_DIR="${1:-$HOME/opiumware-ui}"
+APP_DIR="${2:-$HOME/Applications/OpiumwareUI.app}"
 TMP_DIR="$(mktemp -d)"
 
 cleanup() {
@@ -93,6 +94,62 @@ install_node_locally() {
   return 0
 }
 
+create_mac_app_bundle() {
+  echo "Creating macOS app bundle at: $APP_DIR"
+  rm -rf "$APP_DIR"
+  mkdir -p "$APP_DIR/Contents/MacOS"
+  mkdir -p "$APP_DIR/Contents/Resources/app"
+
+  cp -R "$INSTALL_DIR"/. "$APP_DIR/Contents/Resources/app/"
+
+  cat > "$APP_DIR/Contents/MacOS/OpiumwareUI" <<'EOF'
+#!/usr/bin/env bash
+set -e
+DIR="$(cd "$(dirname "$0")/../Resources/app" && pwd)"
+NODE="$(command -v node || true)"
+if [[ -z "$NODE" ]]; then
+  if [[ -x "$HOME/.local/nodejs/bin/node" ]]; then
+    NODE="$HOME/.local/nodejs/bin/node"
+  elif [[ -x "/usr/local/bin/node" ]]; then
+    NODE="/usr/local/bin/node"
+  elif [[ -x "/opt/homebrew/bin/node" ]]; then
+    NODE="/opt/homebrew/bin/node"
+  fi
+fi
+if [[ -z "$NODE" || ! -x "$NODE" ]]; then
+  echo "Error: Node.js is required to run OpiumwareUI.app."
+  exit 1
+fi
+cd "$DIR"
+exec "$NODE" index.js
+EOF
+
+  chmod +x "$APP_DIR/Contents/MacOS/OpiumwareUI"
+
+  cat > "$APP_DIR/Contents/Info.plist" <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key>
+  <string>OpiumwareUI</string>
+  <key>CFBundleDisplayName</key>
+  <string>Opiumware UI</string>
+  <key>CFBundleIdentifier</key>
+  <string>com.opiumware.ui</string>
+  <key>CFBundleVersion</key>
+  <string>0.1.0</string>
+  <key>CFBundleExecutable</key>
+  <string>OpiumwareUI</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>LSUIElement</key>
+  <false/>
+</dict>
+</plist>
+EOF
+}
+
 if ! command -v node >/dev/null 2>&1; then
   if command -v brew >/dev/null 2>&1; then
     echo "Node.js not found. Installing with Homebrew..."
@@ -148,18 +205,21 @@ find "$INSTALL_DIR" -mindepth 1 -delete
 cp -R . "$INSTALL_DIR"
 rm -rf "$INSTALL_DIR/.git"
 
+create_mac_app_bundle
+
 cat <<EOF
 Installation complete.
 
-Starting the UI launcher now...
+The app bundle has been created at:
+  $APP_DIR
+
+Opening the app now...
 
 If the app does not start, run:
-  cd "$INSTALL_DIR"
-  npm start
+  open "$APP_DIR"
 
 If you want to install to a different location, rerun with:
   curl -fsSL "https://raw.githubusercontent.com/milankusari1-art/ui/main/studio.sh" | bash -s -- /path/to/install
 EOF
 
-cd "$INSTALL_DIR"
-npm start
+open "$APP_DIR"
