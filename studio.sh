@@ -68,31 +68,62 @@ ensure_brew() {
   return 1
 }
 
+install_node_locally() {
+  echo "Homebrew is unavailable. Installing Node.js locally..."
+  NODE_INSTALL_DIR="$HOME/.local/nodejs"
+  mkdir -p "$NODE_INSTALL_DIR"
+  NODE_VERSION=$(curl -fsSL https://nodejs.org/dist/index.tab | awk 'NR==2 {print $1}')
+  if [[ -z "$NODE_VERSION" ]]; then
+    return 1
+  fi
+
+  NODE_TARBALL="${NODE_VERSION}-darwin-x64.tar.gz"
+  NODE_URL="https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_TARBALL}"
+  curl -fsSL "$NODE_URL" -o "$TMP_DIR/node.tar.gz"
+  tar -xzf "$TMP_DIR/node.tar.gz" -C "$TMP_DIR"
+
+  NODE_DIR="$TMP_DIR/node-${NODE_VERSION}-darwin-x64"
+  if [[ ! -d "$NODE_DIR" ]]; then
+    return 1
+  fi
+
+  rm -rf "$NODE_INSTALL_DIR"
+  mv "$NODE_DIR" "$NODE_INSTALL_DIR"
+  PATH="$NODE_INSTALL_DIR/bin:$PATH"
+  return 0
+}
+
 if ! command -v node >/dev/null 2>&1; then
-  if ! ensure_brew; then
-    echo "Error: Homebrew installation failed. Install Node.js manually and rerun."
-    exit 1
+  if command -v brew >/dev/null 2>&1; then
+    echo "Node.js not found. Installing with Homebrew..."
+    brew install node || {
+      echo "Error: Homebrew failed to install Node.js."
+      echo "Please install Node.js manually and rerun."
+      exit 1
+    }
+  else
+    if ! ensure_brew; then
+      if ! install_node_locally; then
+        echo "Error: Node.js is required. Install Homebrew or Node.js manually and rerun."
+        exit 1
+      fi
+    else
+      echo "Node.js not found. Installing with Homebrew..."
+      brew install node || {
+        echo "Error: Homebrew failed to install Node.js."
+        echo "Please install Node.js manually and rerun."
+        exit 1
+      }
+    fi
   fi
-
-  if ! command -v brew >/dev/null 2>&1; then
-    echo "Error: Homebrew is installed but not available in PATH."
-    echo "Please add Homebrew to PATH and rerun."
-    exit 1
-  fi
-
-  echo "Node.js not found. Installing with Homebrew..."
-  brew install node || {
-    echo "Error: Homebrew failed to install Node.js. Install Node manually and rerun."
-    exit 1
-  }
 
   if command -v brew >/dev/null 2>&1; then
     PATH="$(brew --prefix)/bin:$PATH"
   fi
 
   if ! command -v node >/dev/null 2>&1; then
-    echo "Error: Node.js installed but 'node' is not in PATH."
-    echo "Ensure Homebrew's bin directory is in your PATH and rerun."
+    echo "Error: Node.js installation completed but 'node' is not in PATH."
+    echo "Ensure Node.js is installed and available in PATH, then rerun."
     exit 1
   fi
 fi
