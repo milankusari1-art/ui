@@ -1,0 +1,10 @@
+{
+  "name": "opiumware-ui",
+  "version": "0.1.0",
+  "description": "Opiumware Roblox UI launcher for Intel macOS.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "license": "MIT"
+}
