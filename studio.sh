@@ -139,19 +139,28 @@ EOF
   <string>Opiumware UI</string>
   <key>CFBundleIdentifier</key>
   <string>com.opiumware.ui</string>
+  <key>CFBundleShortVersionString</key>
+  <string>0.1.0</string>
   <key>CFBundleVersion</key>
   <string>0.1.0</string>
   <key>CFBundleExecutable</key>
   <string>OpiumwareUI</string>
   <key>CFBundleIconFile</key>
-  <string>icon</string>
+  <string>icon.icns</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
+  <key>CFBundleDevelopmentRegion</key>
+  <string>en</string>
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>6.0</string>
+  <key>LSMinimumSystemVersion</key>
+  <string>10.14</string>
   <key>LSUIElement</key>
   <false/>
 </dict>
 </plist>
 EOF
+  printf 'APPL????' > "$APP_DIR/Contents/PkgInfo"
 }
 
 if ! command -v node >/dev/null 2>&1; then
