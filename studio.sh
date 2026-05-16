@@ -99,8 +99,10 @@ create_mac_app_bundle() {
   rm -rf "$APP_DIR"
   mkdir -p "$APP_DIR/Contents/MacOS"
   mkdir -p "$APP_DIR/Contents/Resources/app"
+  mkdir -p "$APP_DIR/Contents/Resources"
 
   cp -R "$INSTALL_DIR"/. "$APP_DIR/Contents/Resources/app/"
+  cp assets/icon.icns "$APP_DIR/Contents/Resources/"
 
   cat > "$APP_DIR/Contents/MacOS/OpiumwareUI" <<'EOF'
 #!/usr/bin/env bash
@@ -141,6 +143,8 @@ EOF
   <string>0.1.0</string>
   <key>CFBundleExecutable</key>
   <string>OpiumwareUI</string>
+  <key>CFBundleIconFile</key>
+  <string>icon</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>LSUIElement</key>
