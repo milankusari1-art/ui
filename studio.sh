@@ -27,18 +27,38 @@ if ! command -v curl >/dev/null 2>&1; then
 fi
 
 if ! command -v git >/dev/null 2>&1; then
-  echo "Error: git is required. Install Git or Xcode Command Line Tools and retry."
-  exit 1
+  echo "Git not found. Installing Xcode Command Line Tools..."
+  xcode-select --install || true
+  until command -v git >/dev/null 2>&1; do
+    echo "Waiting for Git installation to complete..."
+    sleep 5
+  done
 fi
 
-if ! command -v node >/dev/null 2>&1; then
+ensure_brew() {
   if command -v brew >/dev/null 2>&1; then
-    echo "Node.js not found. Installing with Homebrew..."
-    brew install node
-  else
-    echo "Error: Node.js is required. Install Homebrew or Node.js manually and rerun."
+    return 0
+  fi
+
+  echo "Homebrew was not found. Installing Homebrew..."
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+  if [[ -x "/usr/local/bin/brew" ]]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+  elif [[ -x "/opt/homebrew/bin/brew" ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+  fi
+}
+
+if ! command -v node >/dev/null 2>&1; then
+  ensure_brew
+  if ! command -v brew >/dev/null 2>&1; then
+    echo "Error: Homebrew installation failed. Install Node.js manually and rerun."
     exit 1
   fi
+
+  echo "Node.js not found. Installing with Homebrew..."
+  brew install node
 fi
 
 mkdir -p "$TMP_DIR"
