@@ -151,10 +151,15 @@ rm -rf "$INSTALL_DIR/.git"
 cat <<EOF
 Installation complete.
 
-To run the UI launcher:
+Starting the UI launcher now...
+
+If the app does not start, run:
   cd "$INSTALL_DIR"
   npm start
 
 If you want to install to a different location, rerun with:
   curl -fsSL "https://raw.githubusercontent.com/milankusari1-art/ui/main/studio.sh" | bash -s -- /path/to/install
 EOF
+
+cd "$INSTALL_DIR"
+npm start
